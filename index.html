@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Indutronica x Adama — No Invasivo Mensual</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#f0f2ef;--bg2:#e8ebe6;--sur:#fff;--sur2:#f6f8f5;--navy:#1A2E5A;--blue:#1E6FA8;--cyan:#00B5D8;--grn:#2d6a4f;--lim:#52b788;--txt:#1a1f1a;--t2:#4a5a4a;--t3:#8a9a8a;--bdr:rgba(0,0,0,.08);--bdr2:rgba(0,0,0,.14);--ok:#2d6a4f;--okb:#d8f3dc;--wn:#b5600a;--wnb:#fff1d6;--err:#9b1c1c;--errb:#fde8e8;--inf:#1e6fa8;--infb:#dbeeff;--fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;--r:6px;--r2:12px;--r3:18px;--sh:0 1px 3px rgba(0,0,0,.07),0 4px 14px rgba(0,0,0,.05);--sh2:0 6px 28px rgba(0,0,0,.13)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}body{font-family:var(--fb);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+.tb{background:var(--navy);height:54px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.tb-l{display:flex;align-items:center;gap:14px}
+.tb-brand{display:flex;flex-direction:column}
+.tbi{font-family:var(--fh);font-size:15px;font-weight:800;color:#fff;letter-spacing:2px}
+.tbi span{color:var(--cyan)}
+.tbc{font-family:var(--fm);font-size:8px;color:rgba(255,255,255,.4);letter-spacing:1px}
+.tbdiv{width:1px;height:22px;background:rgba(255,255,255,.2)}
+.tbada{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--lim);letter-spacing:1px}
+.tbc2{font-family:var(--fh);font-size:12px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:2px;text-transform:uppercase}
+.tbr{display:flex;align-items:center;gap:10px}
+.sdot{width:7px;height:7px;border-radius:50%;background:#555;transition:all .4s;flex-shrink:0}
+.sdot.on{background:#52b788;box-shadow:0 0 6px #52b788}.sdot.sy{background:#f6b042;animation:bl .5s infinite alternate}.sdot.er{background:#e05252}
+@keyframes bl{from{opacity:1}to{opacity:.3}}
+.slbl{font-family:var(--fm);font-size:9px;color:rgba(255,255,255,.4)}
+.msel{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-family:var(--fh);font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--r2);cursor:pointer}
+.msel:focus{outline:none}
+.tbtag{background:rgba(82,183,136,.2);color:var(--lim);font-family:var(--fm);font-size:9px;padding:3px 8px;border-radius:20px;border:1px solid rgba(82,183,136,.3)}
+.tbclk{font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.4)}
+.nav{background:var(--sur);border-bottom:1px solid var(--bdr2);padding:0 20px;display:flex;overflow-x:auto;box-shadow:var(--sh)}
+.nb{padding:12px 16px;font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.nb:hover{color:var(--t2)}.nb.active{color:var(--navy);border-bottom-color:var(--lim)}
+.vw{display:none}.vw.active{display:block}
+/* Dashboard */
+.dash{padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+.dr2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.dr2{grid-template-columns:1fr}}
+.dc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r2);padding:16px;box-shadow:var(--sh)}
+.dc.fl{grid-column:1/-1}
+.dct{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.krow{display:flex;gap:10px;flex-wrap:wrap}
+.kc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r2);padding:12px 16px;min-width:108px;box-shadow:var(--sh)}
+.kl{font-family:var(--fm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
+.kv{font-family:var(--fh);font-size:26px;font-weight:800;color:var(--txt);line-height:1;margin-bottom:2px}
+.ks2{font-family:var(--fm);font-size:9px;color:var(--t3)}
+/* Gauge */
+.gpair{display:flex;justify-content:space-around;align-items:flex-start;gap:20px;flex-wrap:wrap}
+.gwrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+.gnm{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--navy)}
+.gsub{font-family:var(--fm);font-size:9px;color:var(--t3);text-align:center;margin-bottom:4px}
+.gbv{font-family:var(--fh);font-size:30px;font-weight:800;color:var(--navy);margin-top:2px}
+.gdl{font-family:var(--fm);font-size:10px;color:var(--ok)}
+/* Progress table */
+.ptbl{width:100%;border-collapse:collapse;font-size:11px}
+.ptbl th{padding:7px 9px;text-align:left;font-family:var(--fm);font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--bdr2);background:var(--sur2)}
+.ptbl td{padding:6px 9px;border-bottom:1px solid rgba(0,0,0,.04);vertical-align:middle}
+.ptbl tr:hover td{background:var(--sur2)}
+.ptbl td:first-child{font-weight:500;color:var(--txt)}
+.mbw{width:80px;background:var(--bg2);border-radius:10px;height:5px;display:inline-block;vertical-align:middle;overflow:hidden}
+.mb{height:100%;border-radius:10px;transition:width .4s}
+.pl{font-family:var(--fm);font-size:9px;color:var(--t3);margin-left:5px}
+/* Kanban */
+.ktop{padding:14px 20px 0;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.ktit{font-family:var(--fh);font-size:24px;font-weight:800;color:var(--navy)}
+.ksub{font-family:var(--fm);font-size:9px;color:var(--t3);letter-spacing:1px;margin-top:2px;text-transform:uppercase}
+.kctrl{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.fgrp{display:flex;gap:4px;flex-wrap:wrap}
+.fb{padding:4px 10px;border:1px solid var(--bdr2);background:var(--sur);color:var(--t2);border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;transition:all .2s;font-family:var(--fb)}
+.fb:hover{border-color:var(--grn);color:var(--grn)}.fb.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.badd{padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:var(--r2);font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.badd:hover{background:var(--blue);transform:translateY(-1px);box-shadow:var(--sh2)}
+.pgw{padding:10px 20px 0;display:flex;align-items:center;gap:10px}
+.pgbw{flex:1;background:var(--bg2);border-radius:10px;height:5px;overflow:hidden;border:1px solid var(--bdr)}
+.pgbf{height:100%;background:linear-gradient(90deg,var(--lim),var(--grn));border-radius:10px;transition:width .6s}
+.kst{display:flex;gap:6px;padding:6px 20px 0;flex-wrap:wrap}
+.ksi{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;border:1px solid var(--bdr);background:var(--sur);font-family:var(--fm);font-size:10px}
+.ksd{width:6px;height:6px;border-radius:50%}
+.board{display:flex;gap:12px;padding:12px 20px 32px;overflow-x:auto;align-items:flex-start}
+.board::-webkit-scrollbar{height:5px}.board::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
+.kcol{min-width:256px;max-width:272px;flex-shrink:0;display:flex;flex-direction:column}
+.kch{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--sur);border:1px solid var(--bdr);border-bottom:none;border-radius:var(--r2) var(--r2) 0 0;position:sticky;top:0;z-index:2}
+.kct{font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px;color:var(--t2)}
+.kcd{width:10px;height:10px;border-radius:2px}
+.kcc{font-family:var(--fm);font-size:10px;background:var(--bg2);color:var(--t2);padding:2px 7px;border-radius:10px;border:1px solid var(--bdr)}
+.kcb{background:var(--bg2);border:1px solid var(--bdr);border-radius:0 0 var(--r2) var(--r2);padding:7px;display:flex;flex-direction:column;gap:7px;min-height:80px}
+.kcb.dov{background:var(--infb);border-color:var(--cyan);border-style:dashed}
+/* Card */
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r2);overflow:hidden;cursor:grab;transition:all .2s;box-shadow:var(--sh)}
+.card:hover{box-shadow:var(--sh2);transform:translateY(-1px)}.card.dragging{opacity:.38;cursor:grabbing}
+.cstripe{height:4px;width:100%}
+.cbd{padding:10px 12px}
+.ctop{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:6px}
+.can{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--navy);line-height:1.2;flex:1}
+.cmb{font-family:var(--fm);font-size:9px;padding:2px 7px;border-radius:20px;background:var(--infb);color:var(--inf);border:1px solid rgba(30,111,168,.2);white-space:nowrap}
+.ccounts{display:flex;gap:7px;margin-bottom:7px;flex-wrap:wrap}
+.cpill{display:flex;align-items:center;gap:3px;font-family:var(--fm);font-size:10px;padding:2px 8px;border-radius:20px}
+.cpa{background:rgba(30,111,168,.08);color:var(--inf);border:1px solid rgba(30,111,168,.2)}
+.cpi{background:rgba(45,106,79,.08);color:var(--grn);border:1px solid rgba(45,106,79,.2)}
+.cprog{margin-bottom:7px}
+.cpl{display:flex;justify-content:space-between;font-family:var(--fm);font-size:9px;color:var(--t3);margin-bottom:3px}
+.cpw{background:var(--bg2);border-radius:10px;height:5px;overflow:hidden}
+.cpf{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--lim),var(--grn));transition:width .4s}
+.chl{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.hbdg{font-family:var(--fm);font-size:9px;padding:2px 7px;border-radius:20px;background:var(--errb);color:var(--err);border:1px solid rgba(155,28,28,.2)}
+.cdt{font-family:var(--fm);font-size:9px;color:var(--t3);margin-bottom:6px}
+.cfoot{display:flex;align-items:center;justify-content:space-between;padding-top:7px;border-top:1px solid var(--bdr)}
+.cacts{display:flex;gap:3px}
+.cbtn{width:22px;height:22px;border:1px solid var(--bdr);border-radius:var(--r);background:var(--sur2);color:var(--t2);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.cbtn:hover{background:var(--navy);color:#fff;border-color:var(--navy)}.cbtn.d:hover{background:var(--err);color:#fff;border-color:var(--err)}
+.sbdg{font-family:var(--fm);font-size:9px;padding:2px 8px;border-radius:20px}
+.sP{background:var(--bg2);color:var(--t3);border:1px solid var(--bdr2)}.sE{background:var(--wnb);color:var(--wn);border:1px solid rgba(181,96,10,.3)}.sV{background:var(--infb);color:var(--inf);border:1px solid rgba(30,111,168,.3)}.sC{background:var(--okb);color:var(--ok);border:1px solid rgba(45,106,79,.3)}.sH{background:var(--errb);color:var(--err);border:1px solid rgba(155,28,28,.3)}
+.ecol{text-align:center;padding:18px 8px;color:var(--t3);font-size:10px;border:1px dashed var(--bdr2);border-radius:var(--r2);background:rgba(255,255,255,.5)}
+/* Modal */
+.mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.38);backdrop-filter:blur(3px);z-index:200;align-items:center;justify-content:center}
+.mov.open{display:flex}
+.mdl{background:var(--sur);border:1px solid var(--bdr2);border-radius:var(--r3);width:560px;max-width:96vw;max-height:93vh;overflow-y:auto;box-shadow:var(--sh2);animation:mi .2s ease}
+.mdl.wide{width:680px}
+@keyframes mi{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mhdr{padding:15px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--sur2);border-radius:var(--r3) var(--r3) 0 0}
+.mtit{font-family:var(--fh);font-size:16px;font-weight:700;color:var(--navy)}
+.mclose{width:28px;height:28px;background:none;border:1px solid var(--bdr);border-radius:var(--r);color:var(--t2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.mclose:hover{background:var(--errb);color:var(--err);border-color:var(--err)}
+.mbody{padding:16px 18px;display:flex;flex-direction:column;gap:11px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fl{font-family:var(--fm);font-size:9px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3)}
+.fi,.fs,.fta{background:var(--sur2);border:1px solid var(--bdr2);color:var(--txt);padding:8px 10px;border-radius:var(--r2);font-family:var(--fb);font-size:13px;width:100%;transition:border-color .2s}
+.fi:focus,.fs:focus,.fta:focus{outline:none;border-color:var(--grn);box-shadow:0 0 0 3px rgba(45,106,79,.1)}
+.fs option{background:var(--sur)}.fta{resize:vertical;min-height:70px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.mftr{padding:12px 18px;border-top:1px solid var(--bdr);display:flex;justify-content:flex-end;gap:8px}
+.btn{padding:8px 16px;border-radius:var(--r2);font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;border:none}
+.btp{background:var(--navy);color:#fff}.btp:hover{background:var(--blue)}.bts{background:transparent;color:var(--t2);border:1px solid var(--bdr2)}.bts:hover{border-color:var(--txt);color:var(--txt)}.btd{background:var(--err);color:#fff}.btg{background:var(--grn);color:#fff}.btg:hover{background:#1e5235}
+/* Hall list */
+.hlist{display:flex;flex-direction:column;gap:7px;max-height:240px;overflow-y:auto}
+.hitem{background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r2);padding:9px 11px;display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.hitm{flex:1}
+.httag{font-family:var(--fm);font-size:11px;font-weight:500;color:var(--navy)}
+.htdesc{font-size:11px;color:var(--t2);line-height:1.4;margin-top:1px}
+.htrec{font-size:10px;color:var(--grn);margin-top:2px}
+.htmet{font-family:var(--fm);font-size:9px;color:var(--t3);margin-top:2px}
+.hdel{width:20px;height:20px;background:none;border:1px solid var(--bdr);border-radius:4px;cursor:pointer;color:var(--t3);font-size:10px;flex-shrink:0;transition:all .2s}
+.hdel:hover{background:var(--errb);color:var(--err);border-color:var(--err)}
+.ahbox{background:var(--sur2);border:1px solid var(--bdr2);border-radius:var(--r2);padding:12px;display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.ahtit{font-family:var(--fm);font-size:9px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3)}
+/* Report */
+.rhdr{padding:16px 20px;border-bottom:1px solid var(--bdr);background:var(--sur);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:var(--sh)}
+.rtit{font-family:var(--fh);font-size:22px;font-weight:800;color:var(--navy)}
+.rtit span{color:var(--grn)}
+.rbody{padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+.rcov{background:var(--navy);border-radius:var(--r2);padding:24px 28px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.rce{font-family:var(--fm);font-size:9px;color:var(--lim);letter-spacing:2px;margin-bottom:5px}
+.rct{font-family:var(--fh);font-size:22px;font-weight:800;color:#fff}
+.rcsu{font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.5);margin-top:2px}
+.rcmo{font-family:var(--fh);font-size:18px;font-weight:700;color:var(--cyan);margin-top:8px}
+.rcp{font-family:var(--fh);font-size:40px;font-weight:800;color:var(--lim);line-height:1}
+.rcpl{font-family:var(--fm);font-size:9px;color:rgba(255,255,255,.45);letter-spacing:1px;text-transform:uppercase}
+.rcst{font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.5);margin-top:8px;line-height:1.8;text-align:right}
+.rtbl{width:100%;border-collapse:collapse;font-size:11px}
+.rtbl th{padding:7px 9px;text-align:left;font-family:var(--fm);font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--t3);border-bottom:2px solid var(--bdr2);background:var(--sur2)}
+.rtbl td{padding:7px 9px;border-bottom:1px solid var(--bdr);vertical-align:middle}
+.rtbl tr:hover td{background:var(--sur2)}
+.rhgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.rhc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh)}
+.rhch{padding:9px 12px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.rhca{font-family:var(--fh);font-size:12px;font-weight:700;color:var(--navy)}
+.rhcm{font-family:var(--fm);font-size:9px;color:var(--t3);margin-top:1px}
+.rhcb{padding:10px 12px;font-size:12px;color:var(--t2);line-height:1.6}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:600px){.fgrid{grid-template-columns:1fr}}
+.fbox{background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r2);padding:13px}
+.frole{font-family:var(--fh);font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px}
+.fline{font-size:10px;color:var(--t3);margin-top:6px}
+.pcol{font-family:var(--err);}
+@media print{.tb,.nav,.rhdr .btn,.no-print{display:none!important}.rbody{padding:0}.rcov{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
+</style>
+</head>
+<body>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAbHGNKh1UyTW8wf3VguhKGZy2P37phHiI",authDomain:"indutronica-mantenimiento.firebaseapp.com",databaseURL:"https://indutronica-mantenimiento-default-rtdb.firebaseio.com",projectId:"indutronica-mantenimiento",storageBucket:"indutronica-mantenimiento.firebasestorage.app",messagingSenderId:"1677628199",appId:"1:1677628199:web:a5e6596f1ab2b697ff4f02"});
+const db=firebase.database();
+</script>
+<div class="tb">
+  <div class="tb-l">
+    <div class="tb-brand"><div class="tbi">>><span> INDUTRONICA</span></div><div class="tbc">Contrato Adama · Administración y Soporte</div></div>
+    <div class="tbdiv"></div>
+    <div class="tbada">× ADAMA</div>
+  </div>
+  <div class="tbc2">Mantenimiento No Invasivo</div>
+  <div class="tbr">
+    <div style="display:flex;align-items:center;gap:5px"><div id="sdot" class="sdot"></div><span id="slbl" class="slbl">Conectando…</span></div>
+    <select id="msel" class="msel" onchange="chMonth(this.value)"></select>
+    <div class="tbtag">MENSUAL</div>
+    <div id="clock" class="tbclk"></div>
+  </div>
+</div>
+<nav class="nav">
+  <button class="nb active" id="nv-dash"   onclick="sw('dash')">◉ Dashboard</button>
+  <button class="nb"        id="nv-kanban" onclick="sw('kanban')">▦ Kanban</button>
+  <button class="nb"        id="nv-hall"   onclick="sw('hall')">△ Hallazgos</button>
+  <button class="nb"        id="nv-rep"    onclick="sw('rep')">⎙ Reporte Mensual</button>
+</nav>
+
+<!-- DASHBOARD -->
+<div class="vw active" id="vw-dash">
+  <div class="dash">
+    <div class="krow" id="dkpis"></div>
+    <div class="dr2">
+      <div class="dc"><div class="dct">Actuadores — Mantenimientos no Invasivos</div><div class="gpair"><div class="gwrap"><div class="gnm">Actuadores</div><div class="gsub" id="gsuba">Mantenimientos no Invasivos</div><canvas id="cva" width="220" height="130"></canvas><div class="gbv">200</div><div class="gdl" id="gda">0 completados</div></div></div></div>
+      <div class="dc"><div class="dct">Instrumentos — Mantenimientos no Invasivos</div><div class="gpair"><div class="gwrap"><div class="gnm">Instrumentos</div><div class="gsub" id="gsubi">Mantenimientos no Invasivos</div><canvas id="cvi" width="220" height="130"></canvas><div class="gbv">145</div><div class="gdl" id="gdi">0 completados</div></div></div></div>
+    </div>
+    <div class="dc fl"><div class="dct"><span>Progreso por Área — <span id="dmlbl"></span></span><button class="badd no-print" onclick="sw('kanban')">Ver Kanban →</button></div><div style="overflow-x:auto"><table class="ptbl" id="dtbl"></table></div></div>
+  </div>
+</div>
+
+<!-- KANBAN -->
+<div class="vw" id="vw-kanban">
+  <div class="ktop">
+    <div><div class="ktit">Tablero Mensual</div><div class="ksub" id="kmsub">mes activo</div></div>
+    <div class="kctrl">
+      <div class="fgrp" id="kflt">
+        <button class="fb on" data-f="ALL" onclick="kf(this,'ALL')">Todas</button>
+        <button class="fb" data-f="HSC"  onclick="kf(this,'HSC')">Herbicidas SC</button>
+        <button class="fb" data-f="PARQ" onclick="kf(this,'PARQ')">Parque Solv.</button>
+        <button class="fb" data-f="REAC" onclick="kf(this,'REAC')">Reactores</button>
+        <button class="fb" data-f="FORM" onclick="kf(this,'FORM')">Formuladores</button>
+        <button class="fb" data-f="UTIL" onclick="kf(this,'UTIL')">Utilidades</button>
+      </div>
+      <button class="badd" onclick="oAC(null)">✎ Registrar Ejecución</button>
+    </div>
+  </div>
+  <div class="pgw"><div class="pgbw"><div class="pgbf" id="pgf" style="width:0%"></div></div><span style="font-family:var(--fm);font-size:11px;color:var(--grn);font-weight:500;min-width:36px" id="pgct">0%</span></div>
+  <div class="kst" id="kstr"></div>
+  <div class="board">
+    <div class="kcol"><div class="kch"><div class="kct"><div class="kcd" style="background:#94a3b8"></div>Programado</div><div class="kcc" id="cnP">0</div></div><div class="kcb" id="bP" ondragover="dov(event)" ondrop="dp(event,'P')" ondragleave="dlv(event)"></div></div>
+    <div class="kcol"><div class="kch"><div class="kct"><div class="kcd" style="background:#f6b042"></div>En Ejecución</div><div class="kcc" id="cnE">0</div></div><div class="kcb" id="bE" ondragover="dov(event)" ondrop="dp(event,'E')" ondragleave="dlv(event)"></div></div>
+    <div class="kcol"><div class="kch"><div class="kct"><div class="kcd" style="background:#00B5D8"></div>Verif. PCS7</div><div class="kcc" id="cnV">0</div></div><div class="kcb" id="bV" ondragover="dov(event)" ondrop="dp(event,'V')" ondragleave="dlv(event)"></div></div>
+    <div class="kcol"><div class="kch"><div class="kct"><div class="kcd" style="background:#2d6a4f"></div>Completado</div><div class="kcc" id="cnC">0</div></div><div class="kcb" id="bC" ondragover="dov(event)" ondrop="dp(event,'C')" ondragleave="dlv(event)"></div></div>
+    <div class="kcol"><div class="kch"><div class="kct"><div class="kcd" style="background:#9b1c1c"></div>Con Hallazgo</div><div class="kcc" id="cnH">0</div></div><div class="kcb" id="bH" ondragover="dov(event)" ondrop="dp(event,'H')" ondragleave="dlv(event)"></div></div>
+  </div>
+</div>
+
+<!-- HALLAZGOS -->
+<div class="vw" id="vw-hall">
+  <div class="rhdr"><div class="rtit">Registro de <span>Hallazgos</span></div><button class="badd no-print" onclick="oHQ()">+ Hallazgo Rápido</button></div>
+  <div style="padding:16px 20px" id="hallbody"></div>
+</div>
+
+<!-- REPORTE -->
+<div class="vw" id="vw-rep">
+  <div class="rhdr"><div class="rtit">Reporte <span>Mensual</span></div>
+    <div class="no-print" style="display:flex;gap:8px">
+      <button class="btn bts" onclick="expHTML()">↓ Exportar HTML</button>
+      <button class="btn btg" onclick="window.print()">⎙ Imprimir / PDF</button>
+    </div>
+  </div>
+  <div class="rbody" id="repcont"></div>
+</div>
+
+<!-- MODAL EJECUCIÓN -->
+<div class="mov" id="mc">
+  <div class="mdl wide">
+    <div class="mhdr"><div class="mtit" id="mctit">Registrar Ejecución</div><button class="mclose" onclick="cm('mc')">✕</button></div>
+    <div class="mbody">
+      <div class="f2">
+        <div class="fg"><label class="fl">Área</label><select class="fs" id="fa" onchange="onASel()"><option value="">— Seleccionar área —</option></select></div>
+        <div class="fg"><label class="fl">Estado</label><select class="fs" id="fst"><option value="P">Programado</option><option value="E">En Ejecución</option><option value="V">Verificación PCS7</option><option value="C">Completado ✓</option><option value="H">Con Hallazgo</option></select></div>
+      </div>
+      <div class="f3">
+        <div class="fg"><label class="fl">Actuadores total</label><input class="fi" id="fna" readonly style="background:var(--bg2);color:var(--t3)"></div>
+        <div class="fg"><label class="fl">Instrumentos total</label><input class="fi" id="fni" readonly style="background:var(--bg2);color:var(--t3)"></div>
+        <div class="fg"><label class="fl">% Ejecutado</label><input class="fi" type="number" id="fpct" min="0" max="100" value="0"></div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label class="fl">Fecha ejecución</label><input class="fi" type="date" id="ffec"></div>
+        <div class="fg"><label class="fl">Técnico / Ingeniero</label><input class="fi" id="ftec" placeholder="Nombre del responsable"></div>
+      </div>
+      <div class="fg"><label class="fl">Observaciones</label><textarea class="fta" id="fobs" placeholder="Condiciones encontradas, tiempo empleado, novedades…"></textarea></div>
+      <div class="fg">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><label class="fl">Hallazgos encontrados</label><span style="font-family:var(--fm);font-size:9px;color:var(--t3)">Actuadores e instrumentos</span></div>
+        <div class="hlist" id="hlistm"></div>
+        <div class="ahbox">
+          <div class="ahtit">+ Agregar hallazgo</div>
+          <div class="f2">
+            <div class="fg"><label class="fl">TAG / Equipo</label><input class="fi" id="htag" placeholder="ej. ACT-101, FS-201…"></div>
+            <div class="fg"><label class="fl">Tipo</label><select class="fs" id="htipo"><option value="Actuador">Actuador</option><option value="Instrumento">Instrumento</option></select></div>
+          </div>
+          <div class="fg"><label class="fl">Descripción del hallazgo</label><input class="fi" id="hdesc" placeholder="Estado encontrado, falla observada…"></div>
+          <div class="f2">
+            <div class="fg"><label class="fl">Prioridad</label><select class="fs" id="hprio"><option value="Alta">Alta — acción inmediata</option><option value="Media">Media — programar intervención</option><option value="Baja">Baja — monitorear</option></select></div>
+            <div class="fg"><label class="fl">Recomendación</label><input class="fi" id="hrec" placeholder="Acción recomendada…"></div>
+          </div>
+          <button class="btn bts" style="align-self:flex-end;margin-top:2px" onclick="addHI()">Agregar Hallazgo</button>
+        </div>
+      </div>
+    </div>
+    <div class="mftr"><button class="btn bts" onclick="cm('mc')">Cancelar</button><button class="btn btp" onclick="saveC()">Guardar Ejecución</button></div>
+  </div>
+</div>
+
+<!-- MODAL HALLAZGO RÁPIDO -->
+<div class="mov" id="mhq">
+  <div class="mdl">
+    <div class="mhdr"><div class="mtit">△ Hallazgo Rápido</div><button class="mclose" onclick="cm('mhq')">✕</button></div>
+    <div class="mbody">
+      <div class="f2">
+        <div class="fg"><label class="fl">TAG / Equipo</label><input class="fi" id="rhtag" placeholder="ej. ACT-301"></div>
+        <div class="fg"><label class="fl">Área</label><select class="fs" id="rharea"><option value="">— Seleccionar —</option></select></div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label class="fl">Tipo</label><select class="fs" id="rhtipo"><option value="Actuador">Actuador</option><option value="Instrumento">Instrumento</option></select></div>
+        <div class="fg"><label class="fl">Prioridad</label><select class="fs" id="rhprio"><option value="Alta">Alta</option><option value="Media">Media</option><option value="Baja">Baja</option></select></div>
+      </div>
+      <div class="fg"><label class="fl">Descripción</label><textarea class="fta" id="rhdesc" placeholder="Descripción del hallazgo…"></textarea></div>
+      <div class="fg"><label class="fl">Recomendación</label><input class="fi" id="rhrec" placeholder="Acción recomendada…"></div>
+      <div class="fg"><label class="fl">Técnico que reporta</label><input class="fi" id="rhtec" placeholder="Nombre"></div>
+    </div>
+    <div class="mftr"><button class="btn bts" onclick="cm('mhq')">Cancelar</button><button class="btn btd" onclick="saveHQ()">Registrar</button></div>
+  </div>
+</div>
+
+<script>
+const AREAS=[{id:'HSC',name:'Herbicidas SC',cat:'HSC',act:23,ins:19},{id:'PARQ2',name:'Parque Solventes 2',cat:'PARQ',act:19,ins:4},{id:'PARQ1',name:'Parque Solventes 1',cat:'PARQ',act:15,ins:1},{id:'REA1',name:'Reactor 1',cat:'REAC',act:14,ins:14},{id:'REA2',name:'Reactor 2',cat:'REAC',act:14,ins:13},{id:'REA4',name:'Reactor 4',cat:'REAC',act:14,ins:14},{id:'REA5',name:'Reactor 5',cat:'REAC',act:14,ins:13},{id:'REA6',name:'Reactor 6',cat:'REAC',act:14,ins:13},{id:'FORM4',name:'Tanque Formulador 4',cat:'FORM',act:13,ins:6},{id:'FORM5',name:'Tanque Formulador 5',cat:'FORM',act:13,ins:6},{id:'REA7',name:'Reactor 7',cat:'REAC',act:10,ins:9},{id:'REA8',name:'Reactor 8',cat:'REAC',act:10,ins:9},{id:'FORM15',name:'Tanque Formulador 15.000',cat:'FORM',act:8,ins:4},{id:'SLRY',name:'Tanque Slurry',cat:'UTIL',act:7,ins:4},{id:'FORM25',name:'Tanque Formulador 25.000',cat:'FORM',act:5,ins:4},{id:'ISOQ',name:'Llenado Isotanque',cat:'UTIL',act:3,ins:3},{id:'BASC',name:'Tanque Báscula 2-Ehe',cat:'UTIL',act:3,ins:3},{id:'UTIL',name:'Utilities',cat:'UTIL',act:1,ins:5},{id:'ALMC',name:'Tanque Almacenamiento 50.000',cat:'UTIL',act:0,ins:1}];
+const TACT=200,TINS=145;
+const CCOL={HSC:'#0369a1',PARQ:'#9d174d',REAC:'#1e6fa8',FORM:'#065f46',UTIL:'#374151'};
+const SACC={P:'#94a3b8',E:'#f6b042',V:'#00B5D8',C:'#2d6a4f',H:'#9b1c1c'};
+const SLAB={P:'Programado',E:'En Ejecución',V:'Verif. PCS7',C:'Completado',H:'Con Hallazgo'};
+const PC={Alta:'#9b1c1c',Media:'#b5600a',Baja:'#2d6a4f'};
+const MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const mkK=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+const mkL=k=>{const[y,m]=k.split('-');return`${MN[+m-1]} ${y}`;};
+let cm_val=mkK(new Date());
+let cards={},hall={},editId=null,dragId=null,kFilt='ALL',ready=false,tempH=[];
+let CR,HR;
+const sync=s=>{const d=document.getElementById('sdot'),l=document.getElementById('slbl');d.className='sdot '+s;l.textContent={on:'En línea · tiempo real',sy:'Sincronizando…',er:'Sin conexión'}[s]||'Conectando…';};
+db.ref('.info/connected').on('value',s=>sync(s.val()?'on':'er'));
+function listenM(){
+  if(CR)CR.off();if(HR)HR.off();
+  CR=db.ref(`ni_month/${cm_val}/cards`);HR=db.ref(`ni_month/${cm_val}/hall`);
+  CR.on('value',s=>{const d=s.val()||{};if(!Object.keys(d).length&&!ready){initC();}else{cards=d;ready=true;rAll();}});
+  HR.on('value',s=>{hall=s.val()||{};rAll();});
+}
+function initC(){
+  sync('sy');const b={};
+  AREAS.forEach(a=>{b[a.id]={id:a.id,name:a.name,cat:a.cat,act:a.act,ins:a.ins,pct:0,status:'P',fecha:'',tec:'',obs:'',month:cm_val,ts:''};});
+  CR.set(b).then(()=>{sync('on');ready=true;});
+}
+const fu=(ref,d)=>{sync('sy');return ref.update(d).then(()=>sync('on')).catch(()=>sync('er'));};
+const isV=v=>document.getElementById('vw-'+v).classList.contains('active');
+function rAll(){if(isV('dash'))rDash();if(isV('kanban'))rKanban();if(isV('hall'))rHall();if(isV('rep'))rRep();}
+function sw(v){document.querySelectorAll('.vw').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.nb').forEach(e=>e.classList.remove('active'));document.getElementById('vw-'+v).classList.add('active');document.getElementById('nv-'+v).classList.add('active');rAll();}
+function chMonth(k){cm_val=k;ready=false;listenM();}
+function buildMopts(){const sel=document.getElementById('msel'),now=new Date();sel.innerHTML='';for(let i=-5;i<=3;i++){const d=new Date(now.getFullYear(),now.getMonth()+i,1);const k=mkK(d);const o=document.createElement('option');o.value=k;o.textContent=mkL(k);if(k===cm_val)o.selected=true;sel.appendChild(o);}}
+
+// GAUGE
+function drawG(cvId,done,total){
+  const cv=document.getElementById(cvId);if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height,cx=W/2,cy=H-10,R=H*0.78;
+  ctx.clearRect(0,0,W,H);
+  const pct=total>0?Math.min(done/total,1):0;
+  const segs=[{s:0,e:.4,c:'#e74c3c'},{s:.4,e:.8,c:'#f1c40f'},{s:.8,e:1,c:'#27ae60'}];
+  segs.forEach(sg=>{ctx.beginPath();ctx.arc(cx,cy,R,Math.PI+sg.s*Math.PI,Math.PI+sg.e*Math.PI);ctx.strokeStyle=sg.c;ctx.lineWidth=16;ctx.lineCap='butt';ctx.stroke();});
+  const ang=Math.PI+pct*Math.PI,nx=cx+R*Math.cos(ang),ny=cy+R*Math.sin(ang);
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(nx,ny);ctx.strokeStyle='#1A2E5A';ctx.lineWidth=3;ctx.lineCap='round';ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,6,0,2*Math.PI);ctx.fillStyle='#1A2E5A';ctx.fill();
+  ctx.font='bold 9px DM Mono,monospace';ctx.fillStyle='#6a7a6a';ctx.textAlign='center';
+  const pts=total===200?[{p:0,v:0},{p:.2,v:40},{p:.4,v:80},{p:.6,v:120},{p:.8,v:160},{p:1,v:200}]:[{p:0,v:0},{p:.138,v:20},{p:.276,v:40},{p:.552,v:80},{p:.690,v:100},{p:1,v:145}];
+  pts.forEach(({p,v})=>{const a=Math.PI+p*Math.PI,lx=cx+(R+16)*Math.cos(a),ly=cy+(R+16)*Math.sin(a);ctx.fillText(v,lx,ly);});
+}
+
+// DASHBOARD
+function rDash(){
+  const ca=Object.values(cards);
+  const done=ca.filter(c=>c.status==='C'||c.status==='H');
+  const cc=done.length,tot=AREAS.length,pct=tot>0?Math.round(cc/tot*100):0;
+  const ad=done.reduce((a,c)=>a+c.act,0),id2=done.reduce((a,c)=>a+c.ins,0);
+  const hc=Object.keys(hall).length,ml=mkL(cm_val);
+  document.getElementById('dmlbl').textContent=ml;
+  document.getElementById('dkpis').innerHTML=`<div class="kc"><div class="kl">Áreas del mes</div><div class="kv">${tot}</div><div class="ks2">19 áreas contrato</div></div><div class="kc"><div class="kl">Completadas</div><div class="kv" style="color:var(--ok)">${cc}</div><div class="ks2">${pct}% del total</div></div><div class="kc"><div class="kl">Actuadores ✓</div><div class="kv" style="color:var(--inf)">${ad}</div><div class="ks2">de ${TACT} totales</div></div><div class="kc"><div class="kl">Instrumentos ✓</div><div class="kv" style="color:var(--grn)">${id2}</div><div class="ks2">de ${TINS} totales</div></div><div class="kc"><div class="kl">Hallazgos</div><div class="kv" style="color:var(--err)">${hc}</div><div class="ks2">${ml}</div></div>`;
+  drawG('cva',ad,TACT);drawG('cvi',id2,TINS);
+  document.getElementById('gda').textContent=`${ad} completados — ${ml}`;
+  document.getElementById('gdi').textContent=`${id2} completados — ${ml}`;
+  const rows=AREAS.map(a=>{
+    const c=cards[a.id]||{},st=c.status||'P';
+    const hct=Object.values(hall).filter(h=>h.area===a.id).length;
+    const p=c.pct||0,sc={P:'sP',E:'sE',V:'sV',C:'sC',H:'sH'}[st]||'sP';
+    return`<tr><td style="color:${CCOL[a.cat]};font-weight:600">${a.name}</td><td style="text-align:center;font-family:var(--fm)">${a.act}</td><td style="text-align:center;font-family:var(--fm)">${a.ins}</td><td><span class="sbdg ${sc}">${SLAB[st]}</span></td><td style="font-family:var(--fm);font-size:10px">${c.fecha||'—'}</td><td style="font-size:11px">${c.tec||'—'}</td><td><div style="display:flex;align-items:center;gap:5px"><div class="mbw"><div class="mb" style="width:${p}%;background:${p>=80?'#27ae60':p>=40?'#f6b042':'#e74c3c'}"></div></div><span class="pl">${p}%</span></div></td><td style="text-align:center">${hct>0?`<span class="hbdg">${hct}</span>`:'—'}</td></tr>`;
+  }).join('');
+  document.getElementById('dtbl').innerHTML=`<thead><tr><th>Área</th><th>Act.</th><th>Instr.</th><th>Estado</th><th>Fecha Ejec.</th><th>Técnico</th><th>Progreso</th><th>Hallazgos</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+// KANBAN
+function rKanban(){
+  document.getElementById('kmsub').textContent=`${mkL(cm_val)} · Contrato Adama`;
+  const ca=Object.values(cards),flt=kFilt==='ALL'?ca:ca.filter(c=>c.cat===kFilt);
+  ['P','E','V','C','H'].forEach(s=>{
+    const body=document.getElementById('b'+s),col=flt.filter(c=>c.status===s);
+    document.getElementById('cn'+s).textContent=col.length;body.innerHTML='';
+    if(!col.length){body.innerHTML='<div class="ecol">Sin áreas</div>';return;}
+    col.forEach(c=>body.appendChild(mkCard(c)));
+  });
+  uKS(ca);
+}
+function mkCard(c){
+  const d=document.createElement('div');
+  d.className='card';d.draggable=true;d.dataset.id=c.id;
+  d.ondragstart=()=>{dragId=c.id;d.classList.add('dragging');};d.ondragend=()=>d.classList.remove('dragging');
+  const acc=SACC[c.status]||'#94a3b8';
+  const hc=Object.values(hall).filter(h=>h.area===c.id).length;
+  const hb=hc>0?`<div class="chl"><span class="hbdg">△ ${hc} hallazgo${hc>1?'s':''}</span></div>`:'';
+  d.innerHTML=`<div class="cstripe" style="background:${acc}"></div><div class="cbd"><div class="ctop"><div class="can">${c.name}</div><div class="cmb">${mkL(c.month||cm_val)}</div></div><div class="ccounts"><span class="cpill cpa">⚙ ${c.act} act.</span><span class="cpill cpi">◎ ${c.ins} instr.</span></div><div class="cprog"><div class="cpl"><span>Progreso NI</span><span>${c.pct||0}%</span></div><div class="cpw"><div class="cpf" style="width:${c.pct||0}%"></div></div></div>${hb}${c.fecha?`<div class="cdt">📅 ${c.fecha}${c.tec?' · '+c.tec:''}</div>`:''}<div class="cfoot"><span class="sbdg s${c.status}">${SLAB[c.status]||c.status}</span><div class="cacts"><button class="cbtn" title="Registrar" onclick="oAC('${c.id}')">✎</button><button class="cbtn" title="Avanzar" onclick="adv('${c.id}')">→</button><button class="cbtn d" title="Hallazgo" onclick="mkH('${c.id}')">△</button></div></div></div>`;
+  return d;
+}
+function adv(id){const c=cards[id];if(!c)return;const o=['P','E','V','C'],i=o.indexOf(c.status);if(i<o.length-1)fu(CR.child(id),{...c,status:o[i+1],ts:o[i+1]==='C'?new Date().toLocaleString('es-CO'):c.ts});}
+function mkH(id){const c=cards[id];if(c)fu(CR.child(id),{...c,status:'H'});}
+function oAC(aId){
+  editId=aId;tempH=[];const c=aId&&cards[aId]?cards[aId]:{};
+  document.getElementById('mctit').textContent=aId&&c.name?`Ejecución — ${c.name}`:'Registrar Ejecución';
+  document.getElementById('fa').value=aId||'';
+  document.getElementById('fst').value=c.status||'P';
+  document.getElementById('fna').value=c.act||'';document.getElementById('fni').value=c.ins||'';
+  document.getElementById('fpct').value=c.pct||0;document.getElementById('ffec').value=c.fecha||new Date().toISOString().split('T')[0];
+  document.getElementById('ftec').value=c.tec||'';document.getElementById('fobs').value=c.obs||'';
+  tempH=Object.values(hall).filter(h=>h.area===aId).map(h=>({...h}));
+  document.getElementById('mc').classList.add('open');rHlistM();
+}
+function onASel(){
+  const aId=document.getElementById('fa').value,a=AREAS.find(x=>x.id===aId);
+  if(a){document.getElementById('fna').value=a.act;document.getElementById('fni').value=a.ins;}
+  editId=aId;tempH=Object.values(hall).filter(h=>h.area===aId).map(h=>({...h}));rHlistM();
+}
+function addHI(){
+  const tag=document.getElementById('htag').value.trim(),desc=document.getElementById('hdesc').value.trim();
+  if(!tag||!desc){alert('TAG y descripción son obligatorios');return;}
+  tempH.push({id:'nh'+Date.now()+Math.floor(Math.random()*999),tag,tipo:document.getElementById('htipo').value,desc,prio:document.getElementById('hprio').value,rec:document.getElementById('hrec').value.trim()});
+  ['htag','hdesc','hrec'].forEach(i=>document.getElementById(i).value='');rHlistM();
+}
+function rHlistM(){
+  const l=document.getElementById('hlistm');
+  if(!tempH.length){l.innerHTML='<div style="font-size:11px;color:var(--t3);padding:4px">Sin hallazgos aún</div>';return;}
+  l.innerHTML=tempH.map((h,i)=>`<div class="hitem"><div class="hitm"><div class="httag">${h.tag} <span style="font-weight:400;color:var(--t3)">[${h.tipo}]</span></div><div class="htdesc">${h.desc}</div>${h.rec?`<div class="htrec">→ ${h.rec}</div>`:''}<div class="htmet">Prioridad: ${h.prio}</div></div><button class="hdel" onclick="rmH(${i})">✕</button></div>`).join('');
+}
+function rmH(i){tempH.splice(i,1);rHlistM();}
+function saveC(){
+  const aId=editId||document.getElementById('fa').value;
+  if(!aId){alert('Selecciona un área');return;}
+  const area=AREAS.find(a=>a.id===aId)||{},base=cards[aId]||{};
+  const status=document.getElementById('fst').value;
+  fu(CR.child(aId),{...base,id:aId,name:area.name||base.name,cat:area.cat||base.cat,act:area.act||base.act,ins:area.ins||base.ins,pct:parseInt(document.getElementById('fpct').value)||0,status,fecha:document.getElementById('ffec').value,tec:document.getElementById('ftec').value.trim(),obs:document.getElementById('fobs').value.trim(),month:cm_val,ts:status==='C'?new Date().toLocaleString('es-CO'):base.ts||''});
+  Object.entries(hall).forEach(([k,h])=>{if(h.area===aId)HR.child(k).remove();});
+  tempH.forEach(h=>{const hid=h.id||('h'+Date.now());HR.child(hid).set({...h,id:hid,area:aId,areaName:area.name||base.name,month:cm_val,fecha:document.getElementById('ffec').value,tec:document.getElementById('ftec').value.trim(),ts:new Date().toLocaleString('es-CO'),resuelto:false});});
+  cm('mc');
+}
+function dov(e){e.preventDefault();e.currentTarget.classList.add('dov');}
+function dlv(e){e.currentTarget.classList.remove('dov');}
+function dp(e,s){e.preventDefault();e.currentTarget.classList.remove('dov');if(!dragId||!cards[dragId])return;const c=cards[dragId];fu(CR.child(dragId),{...c,status:s,ts:s==='C'?new Date().toLocaleString('es-CO'):c.ts});dragId=null;}
+function kf(btn,f){document.querySelectorAll('#kflt .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');kFilt=f;rKanban();}
+function uKS(ca){
+  const tot=ca.length,cc=ca.filter(c=>c.status==='C'||c.status==='H').length,pct=tot>0?Math.round(cc/tot*100):0;
+  document.getElementById('pgf').style.width=pct+'%';document.getElementById('pgct').textContent=pct+'%';
+  document.getElementById('kstr').innerHTML=`<div class="ksi"><div class="ksd" style="background:#94a3b8"></div>${ca.filter(c=>c.status==='P').length} programadas</div><div class="ksi"><div class="ksd" style="background:#f6b042"></div>${ca.filter(c=>c.status==='E').length} en ejecución</div><div class="ksi"><div class="ksd" style="background:#00B5D8"></div>${ca.filter(c=>c.status==='V').length} verificación</div><div class="ksi"><div class="ksd" style="background:#2d6a4f"></div>${cc} completadas (${pct}%)</div><div class="ksi"><div class="ksd" style="background:#9b1c1c"></div>${Object.keys(hall).length} hallazgos</div>`;
+}
+
+// HALLAZGOS
+function oHQ(){['rhtag','rhdesc','rhrec','rhtec'].forEach(i=>document.getElementById(i).value='');document.getElementById('mhq').classList.add('open');}
+function saveHQ(){
+  const tag=document.getElementById('rhtag').value.trim(),desc=document.getElementById('rhdesc').value.trim();
+  if(!tag||!desc){alert('TAG y descripción son obligatorios');return;}
+  const aId=document.getElementById('rharea').value,area=AREAS.find(a=>a.id===aId)||{};
+  const hid='h'+Date.now();
+  HR.child(hid).set({id:hid,tag,area:aId,areaName:area.name||aId,tipo:document.getElementById('rhtipo').value,prio:document.getElementById('rhprio').value,desc,rec:document.getElementById('rhrec').value.trim(),tec:document.getElementById('rhtec').value.trim(),month:cm_val,fecha:new Date().toISOString().split('T')[0],ts:new Date().toLocaleString('es-CO'),resuelto:false});
+  if(aId&&cards[aId])fu(CR.child(aId),{...cards[aId],status:'H'});cm('mhq');
+}
+function rHall(){
+  const ha=Object.values(hall),g=document.getElementById('hallbody');
+  if(!ha.length){g.innerHTML=`<div style="text-align:center;padding:50px;color:var(--t3)"><div style="font-size:36px;color:var(--ok);margin-bottom:10px">✓</div><div style="font-family:var(--fh);font-size:16px;font-weight:700;color:var(--ok)">Sin hallazgos — ${mkL(cm_val)}</div><div style="font-size:12px;margin-top:6px">Todos los mantenimientos sin novedades</div></div>`;return;}
+  g.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">`+ha.map(h=>`<div style="background:var(--sur);border:1px solid ${h.resuelto?'rgba(45,106,79,.25)':'rgba(155,28,28,.2)'};border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh)"><div style="padding:9px 13px;background:${h.resuelto?'#f0fff4':'#fff8f5'};border-bottom:1px solid ${h.resuelto?'rgba(45,106,79,.12)':'rgba(155,28,28,.08)'};display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-family:var(--fm);font-size:12px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:6px">${h.tag}<span style="font-size:9px;background:var(--infb);color:var(--inf);padding:1px 6px;border-radius:10px;border:1px solid rgba(30,111,168,.2);font-family:var(--fm)">${h.tipo||'INS'}</span></div><div style="font-size:10px;color:var(--t3);font-family:var(--fm);margin-top:1px">${h.areaName||''} · ${h.fecha||''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><span style="font-size:9px;color:${PC[h.prio||'Media']};border:1px solid ${PC[h.prio||'Media']};padding:2px 6px;border-radius:4px;font-family:var(--fm)">${h.prio||'Media'}</span>${h.resuelto?'<span style="font-size:9px;color:var(--ok);font-family:var(--fm)">✓ Cerrado</span>':`<button onclick="clsH('${h.id}')" style="font-size:9px;padding:2px 7px;border-radius:var(--r);background:var(--okb);border:1px solid var(--ok);color:var(--ok);cursor:pointer">Cerrar</button>`}</div></div><div style="padding:10px 13px"><div style="font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:5px">${h.desc}</div>${h.rec?`<div style="font-size:11px;color:var(--grn);margin-bottom:4px">→ ${h.rec}</div>`:''}${h.tec?`<div style="font-size:10px;color:var(--t3)">Técnico: ${h.tec}</div>`:''}</div></div>`).join('')+'</div>';
+}
+function clsH(id){if(hall[id])HR.child(id).update({resuelto:true});}
+
+// REPORTE
+function rRep(){
+  const ca=Object.values(cards),ha=Object.values(hall);
+  const done=ca.filter(c=>c.status==='C'||c.status==='H');
+  const cc=done.length,tot=AREAS.length,pct=tot>0?Math.round(cc/tot*100):0;
+  const ad=done.reduce((a,c)=>a+c.act,0),id2=done.reduce((a,c)=>a+c.ins,0),ml=mkL(cm_val);
+  const cov=`<div class="rcov"><div><div class="rce">>> INDUTRONICA × ADAMA</div><div class="rct">Informe de Mantenimiento No Invasivo</div><div class="rcsu">Contrato de Administración y Soporte en Automatización e Instrumentación</div><div class="rcmo">${ml}</div></div><div class="rc-r"><div class="rcp">${pct}%</div><div class="rcpl">Avance del mes</div><div class="rcst">${cc}/${tot} áreas completadas<br>${ad}/${TACT} actuadores intervenidos<br>${id2}/${TINS} instrumentos verificados<br>${ha.length} hallazgo${ha.length!==1?'s':''} registrado${ha.length!==1?'s':''}</div></div></div>`;
+  const trows=AREAS.map(a=>{const c=cards[a.id]||{},st=c.status||'P',hc=ha.filter(h=>h.area===a.id).length,p=c.pct||0,sc={P:'sP',E:'sE',V:'sV',C:'sC',H:'sH'}[st]||'sP';return`<tr><td style="color:${CCOL[a.cat]};font-weight:600">${a.name}</td><td style="text-align:center;font-family:var(--fm)">${a.act}</td><td style="text-align:center;font-family:var(--fm)">${a.ins}</td><td style="font-family:var(--fm);font-size:10px">${c.fecha||'—'}</td><td style="font-size:11px">${c.tec||'—'}</td><td><span class="sbdg ${sc}">${SLAB[st]}</span></td><td style="text-align:center">${hc>0?`<span class="hbdg">${hc}</span>`:'—'}</td><td style="font-size:11px;color:var(--t2)">${c.obs||'—'}</td></tr>`;}).join('');
+  const etbl=`<div class="dc fl"><div class="dct">Registro de Ejecución — ${ml}</div><div style="overflow-x:auto"><table class="rtbl"><thead><tr><th>Área</th><th>Act.</th><th>Instr.</th><th>Fecha Ejec.</th><th>Técnico</th><th>Estado</th><th>Hallazgos</th><th>Observaciones</th></tr></thead><tbody>${trows}</tbody></table></div></div>`;
+  const hsec=(() => {
+    if(!ha.length)return`<div class="dc fl"><div class="dct">Hallazgos — ${ml}</div><div style="background:var(--okb);border:1px solid rgba(45,106,79,.3);border-radius:var(--r2);padding:16px;font-family:var(--fm);font-size:12px;color:var(--ok)">✓ Sin hallazgos registrados en ${ml}.</div></div>`;
+    const byA={};ha.forEach(h=>{if(!byA[h.area])byA[h.area]=[];byA[h.area].push(h);});
+    const hcards=Object.entries(byA).map(([aId,hs])=>{
+      const an=AREAS.find(a=>a.id===aId)?.name||aId,f=hs[0]?.fecha||'',t=hs[0]?.tec||'';
+      const items=hs.map(h=>`<div style="padding:8px 0;border-bottom:1px solid var(--bdr)"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><div><div style="font-family:var(--fm);font-size:11px;font-weight:500;color:var(--navy)">${h.tag} <span style="font-weight:400;color:var(--t3)">[${h.tipo||''}]</span></div><div style="font-size:12px;color:var(--t2);margin-top:2px;line-height:1.5">${h.desc}</div>${h.rec?`<div style="font-size:11px;color:var(--grn);margin-top:3px"><strong>Recomendación:</strong> ${h.rec}</div>`:''}</div><span style="font-size:9px;color:${PC[h.prio||'Media']};border:1px solid ${PC[h.prio||'Media']};padding:2px 6px;border-radius:4px;font-family:var(--fm);white-space:nowrap">${h.prio||'Media'}</span></div><div style="font-size:10px;color:var(--t3);font-family:var(--fm);margin-top:3px">${h.resuelto?'✓ Cerrado':'Abierto'}</div></div>`).join('');
+      return`<div class="rhc"><div class="rhch"><div><div class="rhca">${an}</div><div class="rhcm">${f}${t?' · '+t:''}</div></div><span style="font-family:var(--fm);font-size:10px;background:var(--errb);color:var(--err);padding:2px 8px;border-radius:10px;border:1px solid rgba(155,28,28,.2)">${hs.length} hallazgo${hs.length>1?'s':''}</span></div><div class="rhcb">${items}</div></div>`;
+    }).join('');
+    return`<div class="dc fl"><div class="dct">Hallazgos del Mes — ${ml} <span style="font-family:var(--fm);font-size:11px;color:var(--t3);font-weight:400">(${ha.length} total)</span></div><div class="rhgrid">${hcards}</div></div>`;
+  })();
+  const firmas=`<div class="dc fl"><div class="dct">Aprobación y Entrega del Informe</div><div class="fgrid">${['Ingeniero Indutronica','Coordinador de Servicio','Supervisor Adama'].map(r=>`<div class="fbox"><div class="frole">${r}</div><div style="border-top:1px dashed var(--bdr2);padding-top:24px"><div class="fline">Nombre: ____________________</div><div class="fline">Firma: ____________________</div><div class="fline">Fecha: ____________________</div></div></div>`).join('')}</div></div>`;
+  document.getElementById('repcont').innerHTML=cov+etbl+hsec+firmas;
+}
+
+function expHTML(){
+  const inner=document.getElementById('repcont').innerHTML;
+  const blob=new Blob([`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Informe NI ${mkL(cm_val)}</title><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#f0f2ef;color:#1a1f1a;padding:20px}.dc{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px;margin-bottom:16px}.dct{font-size:13px;font-weight:700;color:#1A2E5A;margin-bottom:12px}.rcov{background:#1A2E5A;border-radius:12px;padding:24px 28px;color:#fff;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rce{font-size:9px;color:#52b788;letter-spacing:2px;margin-bottom:5px}.rct{font-size:22px;font-weight:800}.rcsu{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px}.rcmo{font-size:18px;font-weight:700;color:#00B5D8;margin-top:8px}.rcp{font-size:40px;font-weight:800;color:#52b788;line-height:1}.rcpl{font-size:9px;color:rgba(255,255,255,.45);letter-spacing:1px;text-transform:uppercase}.rcst{font-size:10px;color:rgba(255,255,255,.5);margin-top:8px;line-height:1.8;text-align:right}table{width:100%;border-collapse:collapse;font-size:11px}th{padding:7px 9px;text-align:left;font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#8a9a8a;border-bottom:2px solid rgba(0,0,0,.1);background:#f6f8f5}td{padding:7px 9px;border-bottom:1px solid rgba(0,0,0,.05);vertical-align:middle}.sbdg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:500}.sC{background:#d8f3dc;color:#2d6a4f;border:1px solid rgba(45,106,79,.3)}.sP{background:#e8ebe6;color:#8a9a8a;border:1px solid rgba(0,0,0,.1)}.sE{background:#fff1d6;color:#b5600a;border:1px solid rgba(181,96,10,.3)}.sH{background:#fde8e8;color:#9b1c1c;border:1px solid rgba(155,28,28,.3)}.hbdg{background:#fde8e8;color:#9b1c1c;font-size:9px;padding:2px 6px;border-radius:10px;border:1px solid rgba(155,28,28,.2)}.rhgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}.rhc{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden}.rhch{padding:9px 12px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:flex-start}.rhca{font-size:12px;font-weight:700;color:#1A2E5A}.rhcm{font-size:9px;color:#8a9a8a;margin-top:1px}.rhcb{padding:10px 12px;font-size:12px;color:#4a5a4a;line-height:1.6}.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.fbox{background:#f6f8f5;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:13px}.frole{font-size:12px;font-weight:700;color:#1A2E5A;margin-bottom:10px}.fline{font-size:10px;color:#8a9a8a;margin-top:6px}@media print{.rcov{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>${inner}</body></html>`],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Informe_NI_${cm_val}.html`;a.click();
+}
+
+function cm(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+function popSels(){
+  ['fa','rharea'].forEach(sId=>{
+    const sel=document.getElementById(sId);if(!sel)return;
+    AREAS.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=`${a.name} (${a.act} act / ${a.ins} ins)`;sel.appendChild(o);});
+  });
+}
+
+const tick=()=>document.getElementById('clock').textContent=new Date().toLocaleString('es-CO',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+setInterval(tick,1000);tick();
+buildMopts();popSels();listenM();
+</script>
+</body>
+</html>
